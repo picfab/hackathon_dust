@@ -1,0 +1,59 @@
+---
+import { Image } from '@datocms/astro/Image';
+import type { ArticleListItem } from '../lib/queries';
+
+interface Props {
+  article: ArticleListItem;
+  index?: number;
+}
+
+const { article, index = 0 } = Astro.props;
+
+const dateSource = article._publishedAt ?? article._createdAt;
+const date = dateSource
+  ? new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(
+      new Date(dateSource),
+    )
+  : null;
+
+const title = article.hero?.title ?? article.slug;
+const responsiveImage = article.hero?.image?.responsiveImage ?? null;
+---
+
+<a
+  href={`/articles/${article.slug}`}
+  class="reveal-up group flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-white shadow-soft ring-1 ring-ink-900/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[var(--shadow-lift)]"
+  style={`animation-delay: ${index * 80}ms`}
+>
+  <div class="relative aspect-[8/5] overflow-hidden bg-mist">
+    {
+      responsiveImage ? (
+        <Image
+          data={responsiveImage}
+          pictureClass="h-full w-full"
+          imgClass="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(min-width: 768px) 33vw, 100vw"
+        />
+      ) : (
+        <div class="grid h-full w-full place-items-center bg-gradient-to-br from-brand-100 to-brand-50 text-brand-300">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+            <path d="M5 19V5h7a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      )
+    }
+  </div>
+
+  <div class="flex flex-1 flex-col p-6">
+    {date && <span class="text-xs font-semibold uppercase tracking-wider text-brand-500">{date}</span>}
+    <h3 class="mt-2 text-xl font-bold leading-snug text-ink-900 transition-colors group-hover:text-brand-600">
+      {title}
+    </h3>
+    <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600">
+      Lire l'article
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="transition-transform duration-200 group-hover:translate-x-1">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  </div>
+</a>

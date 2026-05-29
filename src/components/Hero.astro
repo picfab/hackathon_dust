@@ -1,0 +1,41 @@
+---
+import Button from './Button.astro';
+---
+
+<section class="relative overflow-hidden bg-cream">
+  <!-- Gradient mesh atmosphere -->
+  <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+    <div class="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-300/40 blur-[120px]"></div>
+    <div class="absolute -right-20 top-20 h-80 w-80 rounded-full bg-gold-400/30 blur-[120px]"></div>
+    <div class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-brand-500/20 blur-[120px]"></div>
+  </div>
+
+  <div class="relative mx-auto max-w-6xl px-6 pb-24 pt-20 text-center md:pb-32 md:pt-28">
+    <span
+      class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-brand-600 shadow-soft ring-1 ring-ink-900/5"
+    >
+      <span class="h-2 w-2 rounded-full bg-gold-500"></span>
+      Le blog PayFit
+    </span>
+
+    <h1 class="mx-auto mt-7 max-w-4xl text-5xl font-bold leading-[1.05] text-ink-900 md:text-7xl">
+      La gestion d'équipe,
+      <span class="relative whitespace-nowrap text-brand-500">
+        enfin simple
+        <svg class="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M2 9c60-5 200-7 296-3" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="text-gold-400"/>
+        </svg>
+      </span>
+    </h1>
+
+    <p class="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-ink-500 md:text-xl">
+      Conseils, guides et bonnes pratiques pour piloter la paie et les ressources
+      humaines de votre entreprise sereinement.
+    </p>
+
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+      <Button href="#articles">Explorer les articles</Button>
+      <Button href="#articles" variant="secondary">Demander une démo</Button>
+    </div>
+  </div>
+</section>

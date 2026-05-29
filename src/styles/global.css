@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* Fonts: distinctive display (Bricolage Grotesque) + clean body (Inter) */
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/inter";
+
+@theme {
+  /* Brand — violet/mauve, PayFit-inspired */
+  --color-brand-50: #f3f1ff;
+  --color-brand-100: #e9e5ff;
+  --color-brand-200: #d6ceff;
+  --color-brand-300: #b8a8ff;
+  --color-brand-400: #9377ff;
+  --color-brand-500: #6c5ce7;
+  --color-brand-600: #5b46d6;
+  --color-brand-700: #4c38b4;
+  --color-brand-800: #3f3093;
+  --color-brand-900: #362b78;
+
+  /* Ink — deep indigo-navy for text, softer than pure black */
+  --color-ink-900: #0d0b2b;
+  --color-ink-800: #18163f;
+  --color-ink-700: #2a2750;
+  --color-ink-500: #565273;
+  --color-ink-400: #7d7a96;
+
+  /* Accent — warm gold, used sparingly */
+  --color-gold-400: #ffcb47;
+  --color-gold-500: #ffb800;
+
+  /* Surfaces */
+  --color-cream: #faf8ff;
+  --color-mist: #f1eefb;
+
+  /* Typography */
+  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii — generous, friendly */
+  --radius-card: 1.5rem;
+  --radius-pill: 9999px;
+
+  /* Shadows — soft, diffuse */
+  --shadow-soft: 0 1px 2px rgba(13, 11, 43, 0.04), 0 8px 24px rgba(13, 11, 43, 0.06);
+  --shadow-lift: 0 12px 40px rgba(108, 92, 231, 0.18);
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink-800);
+  background-color: #ffffff;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--color-ink-900);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+::selection {
+  background-color: var(--color-brand-500);
+  color: white;
+}
+
+/* Staggered reveal for card grids */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-up {
+  animation: reveal-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* ---- Prose: styling for rendered Structured Text ---- */
+.prose {
+  color: var(--color-ink-700);
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+.prose > * + * {
+  margin-top: 1.5rem;
+}
+.prose h2 {
+  font-size: 1.875rem;
+  margin-top: 3rem;
+  line-height: 1.25;
+}
+.prose h3 {
+  font-size: 1.4rem;
+  margin-top: 2.25rem;
+  line-height: 1.3;
+}
+.prose p {
+  margin: 0;
+}
+.prose a {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+.prose a:hover {
+  color: var(--color-brand-700);
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+}
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose li + li {
+  margin-top: 0.5rem;
+}
+.prose blockquote {
+  border-left: 4px solid var(--color-brand-300);
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--color-ink-500);
+}
+.prose strong {
+  color: var(--color-ink-900);
+  font-weight: 600;
+}
+.prose code {
+  background: var(--color-mist);
+  padding: 0.15em 0.4em;
+  border-radius: 0.4rem;
+  font-size: 0.9em;
+}

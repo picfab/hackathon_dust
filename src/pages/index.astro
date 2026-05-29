@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { getAllArticles, type ArticleListItem } from '../lib/queries';
+
+let articles: ArticleListItem[] = [];
+let error: string | null = null;
+
+try {
+  articles = await getAllArticles();
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Erreur inconnue';
+}
+---
+
+<Layout>
+  <Hero />
+
+  <section id="articles" class="mx-auto max-w-6xl scroll-mt-20 px-6 py-20 md:py-28">
+    <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+      <div>
+        <span class="text-sm font-semibold uppercase tracking-wider text-brand-500">Le blog</span>
+        <h2 class="mt-2 text-4xl font-bold text-ink-900 md:text-5xl">Derniers articles</h2>
+      </div>
+      <p class="max-w-sm text-ink-500">
+        Les dernières actualités, guides et analyses pour faire grandir votre entreprise.
+      </p>
+    </div>
+
+    {
+      error ? (
+        <div class="mt-12 rounded-[var(--radius-card)] border border-dashed border-brand-200 bg-brand-50/50 p-10 text-center">
+          <p class="font-semibold text-ink-900">Impossible de charger les articles.</p>
+          <p class="mt-2 text-sm text-ink-500">{error}</p>
+          <p class="mt-1 text-sm text-ink-400">
+            Vérifiez que <code>DATOCMS_API_TOKEN</code> est défini dans <code>.env</code>.
+          </p>
+        </div>
+      ) : articles.length === 0 ? (
+        <div class="mt-12 rounded-[var(--radius-card)] border border-dashed border-ink-900/10 bg-mist p-10 text-center text-ink-500">
+          Aucun article publié pour le moment.
+        </div>
+      ) : (
+        <div class="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+          {articles.map((article, i) => (
+            <ArticleCard article={article} index={i} />
+          ))}
+        </div>
+      )
+    }
+  </section>
+</Layout>

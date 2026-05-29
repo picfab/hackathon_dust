@@ -1,0 +1,145 @@
+---
+import type { SeoOrFaviconTag } from '@datocms/astro/Seo';
+
+interface Props {
+  /** The `_seoMetaTags` array returned by DatoCMS. */
+  seo: SeoOrFaviconTag[];
+  /** The canonical page URL (for the SERP preview). */
+  url: URL;
+}
+
+const { seo, url } = Astro.props;
+
+// --- Helpers to read values out of the meta tags array ---
+const tags = (seo ?? []) as Array<{
+  tag: string;
+  content?: string | null;
+  attributes?: Record<string, string> | null;
+}>;
+
+const titleTag = tags.find((t) => t.tag === 'title')?.content ?? '';
+
+function metaBy(key: 'name' | 'property', value: string): string {
+  return tags.find((t) => t.tag === 'meta' && t.attributes?.[key] === value)?.attributes?.content ?? '';
+}
+
+const description = metaBy('name', 'description');
+const ogTitle = metaBy('property', 'og:title');
+const ogDescription = metaBy('property', 'og:description');
+const ogImage = metaBy('property', 'og:image');
+const ogType = metaBy('property', 'og:type');
+const twitterCard = metaBy('name', 'twitter:card');
+const twitterTitle = metaBy('name', 'twitter:title');
+const twitterImage = metaBy('name', 'twitter:image');
+
+const canonical =
+  tags.find((t) => t.tag === 'link' && t.attributes?.rel === 'canonical')?.attributes?.href ?? url.href;
+
+// SERP preview uses og: values as the title/description fallback, like real crawlers
+const serpTitle = titleTag || ogTitle;
+const serpDescription = description || ogDescription;
+
+// Breadcrumb-style URL display, like Google
+const prettyUrl = `${url.host}${url.pathname}`.replace(/\/$/, '');
+
+// Recommended length ranges for the audit badges
+function lenState(len: number, min: number, max: number): 'ok' | 'warn' {
+  return len >= min && len <= max ? 'ok' : 'warn';
+}
+
+const titleLen = serpTitle.length;
+const descLen = serpDescription.length;
+
+// Full table of every tag, for a raw audit
+const rows = [
+  { label: 'Title', value: titleTag, min: 30, max: 60 },
+  { label: 'Meta description', value: description, min: 70, max: 160 },
+  { label: 'Canonical', value: canonical },
+  { label: 'og:title', value: ogTitle },
+  { label: 'og:description', value: ogDescription },
+  { label: 'og:type', value: ogType },
+  { label: 'og:image', value: ogImage },
+  { label: 'twitter:card', value: twitterCard },
+  { label: 'twitter:title', value: twitterTitle },
+  { label: 'twitter:image', value: twitterImage },
+];
+---
+
+<details class="group rounded-[var(--radius-card)] border border-ink-900/10 bg-white shadow-soft">
+  <summary
+    class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[var(--radius-card)] px-6 py-4 font-semibold text-ink-900 transition-colors hover:bg-brand-50"
+  >
+    <span class="inline-flex items-center gap-2.5">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-brand-500">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+        <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      Audit SEO — aperçu Google &amp; meta tags
+    </span>
+    <svg
+      width="20" height="20" viewBox="0 0 24 24" fill="none"
+      class="shrink-0 text-ink-400 transition-transform duration-200 group-open:rotate-180"
+    >
+      <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </summary>
+
+  <div class="space-y-6 border-t border-ink-900/5 px-6 py-6">
+    <!-- Google SERP preview -->
+    <div>
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-400">Aperçu Google</p>
+      <div class="rounded-xl border border-ink-900/10 bg-white p-4 font-sans">
+        <div class="flex items-center gap-2">
+          <span class="grid h-6 w-6 place-items-center rounded-full bg-brand-500 text-[10px] font-bold text-white">P</span>
+          <div class="leading-tight">
+            <div class="text-sm text-ink-900">PayFit</div>
+            <div class="text-xs text-ink-400">{prettyUrl}</div>
+          </div>
+        </div>
+        <a href={canonical} class="mt-1.5 block text-xl leading-snug text-[#1a0dab] hover:underline">
+          {serpTitle || 'Titre manquant'}
+        </a>
+        <p class="mt-1 text-sm leading-snug text-[#4d5156]">
+          {serpDescription || 'Aucune meta description définie.'}
+        </p>
+      </div>
+    </div>
+
+    <!-- Length badges -->
+    <div class="flex flex-wrap gap-3">
+      <span class={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${lenState(titleLen, 30, 60) === 'ok' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+        Titre : {titleLen} car. <span class="opacity-60">(30–60)</span>
+      </span>
+      <span class={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${lenState(descLen, 70, 160) === 'ok' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+        Description : {descLen} car. <span class="opacity-60">(70–160)</span>
+      </span>
+    </div>
+
+    <!-- Raw meta table -->
+    <div>
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-400">Meta tags ({tags.length})</p>
+      <div class="overflow-hidden rounded-xl border border-ink-900/10">
+        <table class="w-full border-collapse text-sm">
+          <tbody>
+            {
+              rows.map((row, i) => (
+                <tr class={i % 2 ? 'bg-mist/50' : 'bg-white'}>
+                  <td class="w-44 border-b border-ink-900/5 px-3 py-2 align-top font-mono text-xs font-semibold text-ink-700">
+                    {row.label}
+                  </td>
+                  <td class="border-b border-ink-900/5 px-3 py-2 align-top text-ink-800">
+                    {row.value ? (
+                      <span class="break-words">{row.value}</span>
+                    ) : (
+                      <span class="italic text-ink-400">— non défini</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</details>
