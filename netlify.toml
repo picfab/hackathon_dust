@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+
+# Les devDependencies (jsdom, @datocms/cma-client-node, etc.) ne servent qu'au
+# script d'import local (scripts/import.mjs) et n'ont pas leur place dans le
+# build du site. On les exclut : tout ce qu'il faut au build est en dependencies.
+[build.environment]
+  NPM_FLAGS = "--omit=dev"
