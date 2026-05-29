@@ -1,0 +1,140 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getLeadBoard, isConfigured, type LeadBoard } from '../lib/amplitude';
+
+// Time range from ?range=7|30|90 (default 30)
+const allowed = [7, 30, 90];
+const rangeParam = Number(Astro.url.searchParams.get('range'));
+const days = allowed.includes(rangeParam) ? rangeParam : 30;
+
+let board: LeadBoard | null = null;
+let error: string | null = null;
+
+if (isConfigured) {
+  try {
+    board = await getLeadBoard(days);
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'Erreur inconnue';
+  }
+}
+
+const max = board?.rows[0]?.total ?? 0;
+const nf = new Intl.NumberFormat('fr-FR');
+const pageLabel = (p: string) => (p.length > 60 ? p.slice(0, 57) + '…' : p);
+const pageHref = (p: string) => (p.startsWith('/') ? p : null);
+---
+
+<Layout title="Board conversions — Amplitude">
+  <section class="mx-auto max-w-5xl px-6 py-16 md:py-20">
+    <!-- Header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600">
+          <span class="h-2 w-2 rounded-full bg-gold-500"></span> Amplitude · EU
+        </span>
+        <h1 class="mt-3 text-4xl font-bold text-ink-900 md:text-5xl">Pages qui convertissent le plus</h1>
+        <p class="mt-2 text-ink-500">
+          Classement par événement <code class="rounded bg-mist px-1.5 py-0.5 text-sm">lead_generated</code>.
+        </p>
+      </div>
+
+      <!-- Range selector -->
+      <div class="inline-flex rounded-full bg-mist p-1 text-sm font-semibold">
+        {
+          allowed.map((d) => (
+            <a
+              href={`/amplitude?range=${d}`}
+              class={`rounded-full px-4 py-1.5 transition-colors ${
+                d === days ? 'bg-white text-brand-600 shadow-soft' : 'text-ink-500 hover:text-ink-900'
+              }`}
+            >
+              {d}j
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    {
+      !isConfigured ? (
+        <div class="mt-10 rounded-[var(--radius-card)] border border-dashed border-brand-200 bg-brand-50/40 p-10 text-center">
+          <p class="font-semibold text-ink-900">Amplitude n'est pas encore connecté.</p>
+          <p class="mt-2 text-sm text-ink-500">Ajoute tes clés API (région EU) dans <code>.env</code> :</p>
+          <pre class="mx-auto mt-4 w-fit rounded-xl bg-ink-900 px-5 py-4 text-left text-sm text-white/90"><code>AMPLITUDE_API_KEY=...
+AMPLITUDE_SECRET_KEY=...</code></pre>
+          <p class="mt-4 text-xs text-ink-400">
+            Optionnel : <code>AMPLITUDE_LEAD_EVENT</code> (défaut <code>lead_generated</code>),
+            <code>AMPLITUDE_PAGE_PROPERTY</code> (défaut <code>[Amplitude] Page Path</code>).
+          </p>
+        </div>
+      ) : error ? (
+        <div class="mt-10 rounded-[var(--radius-card)] border border-dashed border-red-200 bg-red-50/50 p-10 text-center">
+          <p class="font-semibold text-ink-900">Impossible de récupérer les données Amplitude.</p>
+          <p class="mt-2 break-words text-sm text-red-600">{error}</p>
+        </div>
+      ) : board && board.rows.length === 0 ? (
+        <div class="mt-10 rounded-[var(--radius-card)] border border-dashed border-ink-900/10 bg-mist p-10 text-center text-ink-500">
+          Aucun événement <code>{board.event}</code> sur les {days} derniers jours.
+        </div>
+      ) : board ? (
+        <>
+          {/* KPI cards */}
+          <div class="mt-8 grid gap-4 sm:grid-cols-3">
+            <div class="rounded-[var(--radius-card)] bg-white p-6 shadow-soft ring-1 ring-ink-900/5">
+              <p class="text-sm font-medium text-ink-400">Leads générés</p>
+              <p class="mt-1 text-3xl font-bold text-ink-900">{nf.format(board.total)}</p>
+            </div>
+            <div class="rounded-[var(--radius-card)] bg-white p-6 shadow-soft ring-1 ring-ink-900/5">
+              <p class="text-sm font-medium text-ink-400">Pages convertissantes</p>
+              <p class="mt-1 text-3xl font-bold text-ink-900">{nf.format(board.rows.length)}</p>
+            </div>
+            <div class="rounded-[var(--radius-card)] bg-brand-500 p-6 text-white shadow-[var(--shadow-lift)]">
+              <p class="text-sm font-medium text-white/70">Top page</p>
+              <p class="mt-1 truncate text-lg font-bold" title={board.rows[0].page}>{pageLabel(board.rows[0].page)}</p>
+              <p class="text-sm text-white/80">{nf.format(board.rows[0].total)} leads</p>
+            </div>
+          </div>
+
+          {/* Ranking */}
+          <div class="mt-6 overflow-hidden rounded-[var(--radius-card)] bg-white shadow-soft ring-1 ring-ink-900/5">
+            <ol>
+              {board.rows.map((row, i) => {
+                const pct = max ? Math.round((row.total / max) * 100) : 0;
+                const share = board.total ? ((row.total / board.total) * 100).toFixed(1) : '0';
+                const href = pageHref(row.page);
+                return (
+                  <li class="border-b border-ink-900/5 last:border-0">
+                    <div class="flex items-center gap-4 px-5 py-4">
+                      <span class="w-6 shrink-0 text-center text-sm font-bold text-ink-400">{i + 1}</span>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-baseline justify-between gap-3">
+                          {href ? (
+                            <a href={href} class="truncate font-semibold text-ink-900 hover:text-brand-600" title={row.page}>
+                              {pageLabel(row.page)}
+                            </a>
+                          ) : (
+                            <span class="truncate font-semibold text-ink-900" title={row.page}>{pageLabel(row.page)}</span>
+                          )}
+                          <span class="shrink-0 text-sm text-ink-400">{share}%</span>
+                        </div>
+                        <div class="mt-2 h-2 overflow-hidden rounded-full bg-mist">
+                          <div class="h-full rounded-full bg-brand-500" style={`width:${pct}%`}></div>
+                        </div>
+                      </div>
+                      <span class="w-16 shrink-0 text-right font-bold tabular-nums text-ink-900">{nf.format(row.total)}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+
+          <p class="mt-4 text-xs text-ink-400">
+            Source : Amplitude (EU) · événement <code>{board.event}</code> groupé par <code>{board.property}</code> ·
+            période {board.start}–{board.end}.
+          </p>
+        </>
+      ) : null
+    }
+  </section>
+</Layout>
