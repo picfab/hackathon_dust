@@ -57,6 +57,7 @@ export interface Article {
   slug: string;
   _publishedAt: string | null;
   _createdAt: string;
+  _updatedAt: string;
   hero: Hero | null;
   content: ContentBlock[];
   seo: SeoOrFaviconTag[];
@@ -99,6 +100,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
           slug
           _publishedAt
           _createdAt
+          _updatedAt
           hero {
             title
             image {

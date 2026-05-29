@@ -26,6 +26,20 @@ const date = dateSource
     )
   : null;
 
+const dateFmt = new Intl.DateTimeFormat('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Europe/Paris',
+});
+const timeFmt = new Intl.DateTimeFormat('fr-FR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Paris',
+});
+const updated = article._updatedAt ? new Date(article._updatedAt) : null;
+const updatedStr = updated ? `${dateFmt.format(updated)} à ${timeFmt.format(updated)}` : null;
+
 const heroTitle = article.hero?.title ?? article.slug;
 const responsiveImage = article.hero?.image?.responsiveImage ?? null;
 ---
@@ -50,6 +64,9 @@ const responsiveImage = article.hero?.image?.responsiveImage ?? null;
           Tous les articles
         </a>
         {date && <p class="mt-6 text-sm font-semibold uppercase tracking-wider text-brand-500">{date}</p>}
+        {updatedStr && (
+          <p class="mt-1 text-xs font-medium text-ink-400">Mis à jour le {updatedStr}</p>
+        )}
         <h1 class="mt-3 text-4xl font-bold leading-[1.1] text-ink-900 md:text-6xl">
           {heroTitle}
         </h1>
